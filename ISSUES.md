@@ -1,4 +1,4 @@
-# ISSUES: Sonarqube is not pointing out custom issues in the analysis
+# ISSUES: Sonarqube is not pointing out custom rules issues in the analysis
 
 ## Configure the Gradle Task *sonarqube*
 
