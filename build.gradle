@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '7.1.2' // Plugin to create a fat JAR
+    id 'org.sonarqube' version '4.0.0.2929'
+}
+
+group = 'com.example'
+version = '1.0-SNAPSHOT'
+
+// Defining the SonarQube API version variable
+ext {
+    sonarPluginApiVersion = '10.6.0.2114' // Storing the SonarQube API version
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // SonarQube API using the version variable
+    implementation "org.sonarsource.api.plugin:sonar-plugin-api:$sonarPluginApiVersion"
+
+    // Sonar Java plugin
+    implementation 'org.sonarsource.java:sonar-java-plugin:8.5.0.37199'
+
+
+    implementation 'org.sonarsource.sslr-squid-bridge:sslr-squid-bridge:2.7.1.392'
+    implementation 'org.slf4j:slf4j-api:1.6.2'
+    implementation 'com.google.guava:guava:19.0'
+
+    // Test dependencies
+    testImplementation 'org.sonarsource.java:java-checks-testkit:8.5.0.37199'
+    testImplementation 'org.mockito:mockito-core:5.5.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.5.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+
+}
+
+// Compilation configuration
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            'Plugin-Key': 'sonar-custom-rules-java-plugin',
+            'Plugin-Name': 'Sonar Custom Rules java plugin',
+            'Plugin-Class': 'com.helbert.vieira.rios.sonar.CustomRulesPlugin', // Main plugin class
+            'Plugin-Version': project.version, // Plugin version
+            'Plugin-Description': 'SonarQube plugin with custom rules for java',
+            'SonarQube-Min-Version': sonarPluginApiVersion, // Using the SonarQube API version variable
+            'SonarLint-Supported': 'true' // SonarLint support
+        )
+    }
+}
+
+// Using the Shadow plugin to create a fat JAR that includes dependencies
+shadowJar {
+    archiveClassifier.set('')
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "project-key-sonar-custom-rules-java-plugin"
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.token", "<your token>"
+        property "sonar.scm.disabled", "true"
+        property "sonar.profile", "profile-sonar-custom-rules-java-plugin"
+        property "sonar.sources", "src/main/java"
+        property "sonar.tests", "src/test/java"
+        property "sonar.inclusions", "**/*.java"
+    }
+}
